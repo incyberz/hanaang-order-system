@@ -1,0 +1,23 @@
+<?php
+if ($username) {
+  $s = "SELECT 
+  a.role,
+  a.nama,
+  a.image, 
+  a.whatsapp, 
+  a.active_status, 
+  a.whatsapp_status,
+  b.*
+  FROM tb_user a 
+  JOIN tb_reseller b ON a.username=b.username 
+  WHERE a.username = '$username'";
+  $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+  $user = mysqli_fetch_assoc($q);
+  if (!$user) {
+    alert("Belum ada data user (reseller) dengan username [$username]");
+    exit;
+  }
+  $nama_user = $user['nama'];
+  $role = $user['role'] ?? 'reseller';
+  $is_adm = $role == 'admin' ? 1 : 0;
+}
