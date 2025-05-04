@@ -1,6 +1,7 @@
 <?php
 include 'order-add-styles.php';
 include 'order-add-process.php';
+include 'includes/btn_home.php';
 
 
 # ============================================================
@@ -10,7 +11,7 @@ $s = "SELECT * FROM tb_order WHERE status is null";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $order = mysqli_fetch_assoc($q);
 if ($order) {
-  $id_order = $order['id'];
+  jsurl("?order_detail&id_order=$order[id]");
 } else {
   # ============================================================
   # AUTO INSERT NEW ORDER

@@ -2,8 +2,13 @@
 $p = $_GET['p'] ?? '';
 
 if ($p == 'add') {
-  include 'order-add.php';
+  include 'add_order.php';
 } else {
-  include 'order-terbaru.php';
-  include 'order-histori.php';
+  $id_order = $_GET['id_order'] ?? null;
+  if ($id_order) {
+    include "order_detail.php";
+  } else {
+    include 'order-terbaru.php';
+    include 'order-histori.php';
+  }
 }

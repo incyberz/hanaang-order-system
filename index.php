@@ -25,10 +25,10 @@ if ($username) {
   # ============================================================
   # INCLUDES
   # ============================================================
-  include "$dotdot/includes/alert.php";
-  include "$dotdot/includes/insho_styles.php";
-  include "$dotdot/includes/img_icon.php";
-  include "$dotdot/includes/jsurl.php";
+  include "includes/alert.php";
+  include "includes/insho_styles.php";
+  include "includes/img_icon.php";
+  include "includes/jsurl.php";
 } // end if $username
 
 # ============================================================
