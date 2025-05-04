@@ -7,4 +7,3 @@
     </span>
   </p>
 </div>
-<?php if ($username) include 'includes/btn_logout.php';

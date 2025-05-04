@@ -1,19 +1,17 @@
 <?php
 # ============================================================
-# GET PARAM
-# ============================================================
-$param = null;
-if ($_GET) {
-  foreach ($_GET as $key => $value) {
-    $param = $key;
-    break;
-  }
-}
-
-# ============================================================
 # dilarang login jika sudah login
 # ============================================================
 if ($param == 'login' and $username) die('<script>location.replace("?")</script>');
+
+# ============================================================
+# HOME AND LOGOUT 
+# ============================================================
+if ($username) {
+  if ($param) include 'includes/btn_home.php';
+  include 'includes/btn_logout.php';
+}
+
 
 # ============================================================
 # ADDRESS ROUTE 

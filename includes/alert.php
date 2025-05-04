@@ -1,15 +1,17 @@
 <?php
 function alert($pesan, $class = 'danger', $style = null, $is_echo = true)
 {
-  $style = $style ?? "
-    margin: 10px; 
-    text-align:center; 
-    color:red; 
-    padding:25px 15px; 
-    background: #fcc; 
-    border-radius:7px; 
-    font-family: consolas
-  ";
+  if ($class == 'danger') {
+    $style = $style ?? "
+      margin: 10px; 
+      text-align:center; 
+      color:red; 
+      padding:25px 15px; 
+      background: #fcc; 
+      border-radius:7px; 
+      font-family: consolas
+    ";
+  }
 
   $string = "<div class='my-4 alert alert-$class' style='$style'>$pesan</div>";
   if ($is_echo) {

@@ -1,17 +1,26 @@
 <?php
-include 'order-add-styles.php';
-include 'order-add-process.php';
-include 'includes/btn_home.php';
+include 'add_order-styles.php';
+include 'add_order-process.php';
 
 
 # ============================================================
 # AUTO ADD ORDER JIKA TIDAK ADA ORDER PENDING 
 # ============================================================
-$s = "SELECT * FROM tb_order WHERE status is null";
+$s = "SELECT a.*,
+(
+  SELECT SUM(qty) FROM tb_order_items 
+  WHERE id_order=a.id) sum_qty 
+FROM tb_order a 
+WHERE a.status is null
+";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $order = mysqli_fetch_assoc($q);
 if ($order) {
-  jsurl("?order_detail&id_order=$order[id]");
+  if ($order['sum_qty']) {
+    jsurl("?order_detail&id_order=$order[id]");
+  } else {
+    $id_order = $order['id'];
+  }
 } else {
   # ============================================================
   # AUTO INSERT NEW ORDER
@@ -35,7 +44,11 @@ $s = "SELECT *,
   ORDER BY created_at DESC LIMIT 1 -- hanya harga terbaru 
   ) harga_reseller 
 FROM tb_produk a 
-WHERE a.status=1";
+WHERE a.status=1 -- masih diproduksi
+ORDER BY 
+a.merk, -- urutkan berdasarkan merk
+a.harga DESC -- lalu urutkan berdasarkan harga tertinggi
+";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $row_produk = '';
 $i = 0;
@@ -92,7 +105,7 @@ while ($d = mysqli_fetch_assoc($q)) {
           </div>
           <div class='blok-kalkulasi hideit' id=blok-kalkulasi--$id>
             $kalkulasi_row
-            <div class='f12 abu miring mt1 mb1'>min: $d[min_order], max: $d[max_order]</div>
+            <div class='f12 abu miring mt1 mb1'>min: $d[min_order], max: $d[max_order], pengiriman: $d[alat_kirim]</div>
           </div>
         </div>
       </div>
@@ -105,7 +118,7 @@ while ($d = mysqli_fetch_assoc($q)) {
 
 
 ?>
-<link rel="stylesheet" href="assets/css/order-add.css">
+<link rel="stylesheet" href="assets/css/add_order.css">
 <div class="blok-order d-flex justify-content-center align-items-center">
 
   <form method="POST" class="form-order">
@@ -147,7 +160,7 @@ while ($d = mysqli_fetch_assoc($q)) {
 
     <div class="text-center my-4">
       <div id="blok_btn_silahkan_isi" class="">
-        <span class="btn btn-primary w-100" onclick="alert(`Silahkan isi QTY terlebih dahulu.`)">Silahkan isi QTY...</span>
+        <span class="btn btn-primary w-100" onclick="alert(`Silahkan isi QTY terlebih dahulu.`)">Silahkan Ceklis Produk dan isi QTY...</span>
       </div>
       <div id="blok_btn_submit_pesanan" class="hideit">
         <button class="btn btn-primary w-100" id=btn_submit_pesanan name=btn_submit_pesanan value="<?= $id_order ?>">Submit Pesanan</button>

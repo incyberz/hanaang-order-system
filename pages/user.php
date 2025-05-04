@@ -1,5 +1,5 @@
 <?php
-if ($username) {
+if ($username and $param != 'daftar_reseller') {
   $s = "SELECT 
   a.role,
   a.nama,
@@ -15,7 +15,10 @@ if ($username) {
   $user = mysqli_fetch_assoc($q);
   if (!$user) {
     alert("Belum ada data user (reseller) dengan username [$username]");
-    exit;
+    # ============================================================
+    # REDIRECT TO DAFTAR RESELLER
+    # ============================================================
+    jsurl('?daftar_reseller');
   }
   $nama_user = $user['nama'];
   $role = $user['role'] ?? 'reseller';

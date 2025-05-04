@@ -9,7 +9,8 @@ include 'my_order-process.php';
 include 'rstatus_order.php';
 include 'rpetugas.php';
 
-$img_batal = img_icon('batal');
+$img_pause = img_icon('pause');
+$img_play = img_icon('play');
 
 
 $s = "SELECT a.*,
@@ -35,25 +36,35 @@ while ($d = mysqli_fetch_assoc($q)) {
   # ============================================================
   $btn_delete = "<span class=hover onclick='alert(`Tidak bisa delete order ini.`)'>$img_delete_disabled</span>";
   if ($status <= 0) {
-    $btn_delete = "<button class=transparan onclick='alert(`Delete order ini.`)' value=$id name=btn_delete_order>$img_delete</button>";
+    $btn_delete = "<button class=transparan onclick='alert(`Delete order ini.`)' value='$id--$d[sum_qty]' name=btn_delete_order>$img_delete</button>";
+  }
+
+  # ============================================================
+  # FITUR PAUSE
+  # ============================================================
+  $btn_pause = '';
+  if ($status === '0' || $status === '1') {
+    $btn_pause = "<button class=transparan onclick='alert(`Pause order ini.`)' value=$id--0 name=btn_pause_order>$img_pause</button>";
+  } elseif ($status == -2) {
+    $btn_pause = "<button class=transparan onclick='alert(`Lanjutkan order ini.`)' value=$id--1 name=btn_pause_order>$img_play</button>";
   }
 
 
   # ============================================================
   # MANAJEMEN STATUS ORDER
   # ============================================================
-  $status_show = "<span class='badge bg-danger'>Belum Anda Proses</span>";
+  $status_show = show_status_order(null);
   $info_status = '';
   if ($d['sum_qty']) {
-    $status_show = "<span class='badge bg-warning'>Sedang Diproses Petugas</span>";
+    $status_show = show_status_order('');
 
     if ($status !== null) {
       $petugas = $rpetugas[$d['petugas']]['nama'];
       $info_status .= "<div class='f12 text-success'><b>Admin</b>: $petugas</div>";
 
-      $status_show = $rstatus_order[$status]['nama_status'];
+      $nama_status = $rstatus_order[$status]['nama_status'];
       $bg = $rstatus_order[$status]['bg'];
-      $status_show = "<span class='badge bg-$bg'>$status - $status_show</span>";
+      $status_show = show_status_order("$status - $nama_status", $bg);
       if ($status == -1) {
         $info_status .= "<div class='f12 text-danger'>$d[info_status]</div>";
       } elseif ($status >= 1) {
@@ -72,11 +83,18 @@ while ($d = mysqli_fetch_assoc($q)) {
   }
   $sum_qty = number_format($d['sum_qty']);
 
+  # ============================================================
+  # KUMPULAN AKSI
+  # ============================================================
   $aksi = "
     <a href='?order_detail&id_order=$id'>$img_detail</a>
     $btn_delete
+    $btn_pause
   ";
 
+  # ============================================================
+  # FINAL TR
+  # ============================================================
   $tr .= "
     <tr>
       <td>$i</td>

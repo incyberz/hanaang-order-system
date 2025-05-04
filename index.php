@@ -10,7 +10,27 @@ $username = $_SESSION['hanaang_username'] ?? '';
 # ============================================================
 # ZZZ DEBUG SESSION
 # ============================================================
-$username = 'iin';
+// $username = 'iin';
+
+# ============================================================
+# PETUGAS DEFAULT
+# ============================================================
+$petugas_default = [
+  'nama' => 'Dasep Solehuddin',
+  'whatsapp' => '6287729007318',
+];
+
+# ============================================================
+# GET PARAM
+# ============================================================
+$param = null;
+if ($_GET) {
+  foreach ($_GET as $key => $value) {
+    $param = $key;
+    break;
+  }
+}
+
 
 # ============================================================
 # CONFIGIRATION FILE
@@ -25,10 +45,21 @@ if ($username) {
   # ============================================================
   # INCLUDES
   # ============================================================
-  include "includes/alert.php";
-  include "includes/insho_styles.php";
-  include "includes/img_icon.php";
-  include "includes/jsurl.php";
+  include 'includes/alert.php';
+  include 'includes/insho_styles.php';
+  include 'includes/img_icon.php';
+  include 'includes/jsurl.php';
+  include 'includes/set_h2.php';
+
+  # ============================================================
+  # GLOBAL SELECT
+  # ============================================================
+  // include 'pages/SELECT.php';
+
+  # ============================================================
+  # CUSTOM FUNCTIONS
+  # ============================================================
+  include 'includes/show_status_order.php';
 } // end if $username
 
 # ============================================================
