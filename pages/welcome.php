@@ -8,4 +8,4 @@
 </p>
 <hr>
 <a href="?daftar" class="btn btn-primary">Daftar Reseller</a>
-<a href="?pesan" class="btn btn-primary">Pemesanan</a>
+<a href="?login" class="btn btn-primary">Pemesanan</a>

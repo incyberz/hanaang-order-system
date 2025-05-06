@@ -27,6 +27,7 @@ a.tanggal_terima,
 (SELECT nama FROM tb_user WHERE username=a.petugas) petugas_admin, 
 (SELECT nama FROM tb_user WHERE username=a.qc) petugas_qc, 
 (SELECT nama FROM tb_user WHERE username=a.kurir) petugas_kurir,
+(SELECT SUM(qty) FROM tb_order_items WHERE id_order=a.id) sum_qty,
 a.*
 
 FROM tb_order a WHERE id='$id_order'
@@ -164,6 +165,10 @@ if (mysqli_num_rows($q)) {
     ";
   }
 
+  // echo '<pre>';
+  // print_r($order);
+  // echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
+  // exit;
 
   $total_rp_show = number_format($total_rp);
   if ($order['status'] === null) {

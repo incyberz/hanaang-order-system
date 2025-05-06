@@ -21,12 +21,13 @@ AND delete_at is null
 ORDER BY a.tanggal 
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
-$tr = '';
-$div = '';
+$tr = null;
+$div = null;
 $i = 0;
 while ($d = mysqli_fetch_assoc($q)) {
   $id = $d['id'];
   $status = $d['status'];
+  if ($status === null) $bisa_add_order = false;
   $i++;
   $tanggal = date('d-M-Y', strtotime($d['tanggal']));
   $jam = date('H:i', strtotime($d['tanggal']));
@@ -137,6 +138,16 @@ while ($d = mysqli_fetch_assoc($q)) {
   ";
 }
 
+$belum = "
+  <tr>
+    <td colspan=100%>
+      <div class='alert alert-danger text-center'>Anda belum pernah memesan.</div>
+    </td>
+  </tr>
+";
+
+$tr = $tr ?? $belum;
+$div = $div ?? $belum;
 
 
 

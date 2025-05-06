@@ -1,5 +1,6 @@
 <?php
-if ($username and $param != 'daftar_reseller') {
+if ($username and $param != 'daftar_reseller' and $param != 'logout') {
+  $tb2 = $role ? 'petugas' : 'reseller';
   $s = "SELECT 
   a.role,
   a.nama,
@@ -9,12 +10,12 @@ if ($username and $param != 'daftar_reseller') {
   a.whatsapp_status,
   b.*
   FROM tb_user a 
-  JOIN tb_reseller b ON a.username=b.username 
+  JOIN tb_$tb2 b ON a.username=b.username 
   WHERE a.username = '$username'";
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   $user = mysqli_fetch_assoc($q);
   if (!$user) {
-    alert("Belum ada data user (reseller) dengan username [$username]");
+    alert("Belum ada data user (reseller) dengan username [$username]", 'info');
     # ============================================================
     # REDIRECT TO DAFTAR RESELLER
     # ============================================================

@@ -1,38 +1,73 @@
-<div
-  class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-  <h2>Dashboard Admin</h2>
-</div>
+<?php
+set_h2('Admin Dashboard');
 
-<!-- Dashboard Stats -->
-<div class="row">
-  <!-- Total Pesanan -->
-  <div class="col-md-4 mb-4">
-    <div class="card">
-      <div class="card-body bg-info text-white">
-        <h5 class="card-title">Total Pesanan</h5>
-        <p class="card-text">120 Pesanan Masuk</p>
+$rs = [];
+$rs['reseller_count'] = "SELECT 1 FROM tb_reseller a 
+  JOIN tb_user b ON a.username=b.username 
+  WHERE b.active_status = 1";
+$rs['active_reseller_count'] = "$rs[reseller_count] AND b.whatsapp_status=1";
+
+
+$active_reseller_count = 15;
+$reseller_count = 19;
+$order_count = 24;
+$total_order_count = 26;
+$pembayaran_count = 23;
+$total_pembayaran_count = 23;
+$DO_count = 19;
+$total_DO_count = 23;
+
+$rstat = [
+  'reseller' => [
+    'bg' => 'info',
+    'title' => 'Reseller Aktif',
+    'count' => $active_reseller_count,
+    'satuan_count' => 'Reseller',
+    'total_count' => $reseller_count,
+  ],
+  'order' => [
+    'bg' => 'info',
+    'title' => 'Pesanan Sukses',
+    'count' => $order_count,
+    'satuan_count' => 'Pesanan',
+    'total_count' => $total_order_count,
+  ],
+  'pembayaran' => [
+    'bg' => 'success',
+    'title' => 'Verified Pembayaran',
+    'count' => $pembayaran_count,
+    'satuan_count' => 'Bukti Bayar',
+    'total_count' => $total_pembayaran_count,
+  ],
+  'DO' => [
+    'bg' => 'success',
+    'title' => 'Surat Jalan',
+    'count' => $DO_count,
+    'satuan_count' => 'Pengiriman',
+    'total_count' => $total_DO_count,
+  ],
+];
+
+$stats = '';
+foreach ($rstat as $stat => $v) {
+  $bg = $v['count'] == $v['total_count'] ? $v['bg'] : 'danger';
+  $stats .= "
+    <div class='col-md-4 col-xl-3 mb-4'>
+      <div class='card'>
+        <div class='card-body bg-$bg text-white'>
+          <h5 class='card-title'>$v[title]</h5>
+          <p class='card-text'><span class='display-4'>$v[count]</span> of $v[total_count] $v[satuan_count]</p>
+        </div>
       </div>
-    </div>
-  </div>
-  <!-- Total Pembayaran -->
-  <div class="col-md-4 mb-4">
-    <div class="card">
-      <div class="card-body bg-success text-white">
-        <h5 class="card-title">Total Pembayaran</h5>
-        <p class="card-text">100 Pembayaran Terverifikasi</p>
-      </div>
-    </div>
-  </div>
-  <!-- Total Surat Jalan -->
-  <div class="col-md-4 mb-4">
-    <div class="card">
-      <div class="card-body bg-success text-white">
-        <h5 class="card-title">Surat Jalan</h5>
-        <p class="card-text">85 Surat Jalan Dicetak</p>
-      </div>
-    </div>
-  </div>
-</div>
+    </div>  
+  ";
+}
+
+echo "
+  <div class='row'>$stats</div>
+";
+?>
+
 
 <!-- Recent Orders -->
 <div class="row">

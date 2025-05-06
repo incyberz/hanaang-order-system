@@ -13,11 +13,18 @@ if (isset($_POST['btn_login'])) {
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   if (mysqli_num_rows($q)) {
     $d = mysqli_fetch_assoc($q);
-    $whatsapp_status = $d['whatsapp_status'];
-
-    if ($whatsapp_status) {
-      echo 'set SESSION OK<br>';
+    if ($d['whatsapp_status']) {
+      # ============================================================
+      # SET SESSION USERNAME
+      # ============================================================
       $_SESSION['hanaang_username'] = $_POST['username'];
+
+      if ($d['role']) {
+        # ============================================================
+        # SET SESSION ROLE
+        # ============================================================
+        $_SESSION['hanaang_role'] = $d['role'];
+      }
       echo '<script>location.replace("?")</script>';
     } else {
       include 'login-verifikasi_akun.php';

@@ -5,12 +5,13 @@ session_start();
 # ============================================================
 # SESSION
 # ============================================================
-$username = $_SESSION['hanaang_username'] ?? '';
+$username = $_SESSION['hanaang_username'] ?? null;
+$role = $_SESSION['hanaang_role'] ?? null;
 
-# ============================================================
-# ZZZ DEBUG SESSION
-# ============================================================
-// $username = 'iin';
+
+// ZZZ
+$_SESSION['hanaang_username'] = 'admin';
+$_SESSION['hanaang_role'] = 'admin';
 
 # ============================================================
 # PETUGAS DEFAULT
@@ -67,7 +68,6 @@ if ($username) {
 # ============================================================
 $user = [];
 $nama_user = '';
-$role = null;
 $is_adm = false;
 include 'pages/user.php';
 

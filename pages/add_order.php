@@ -11,12 +11,19 @@ $s = "SELECT a.*,
   SELECT SUM(qty) FROM tb_order_items 
   WHERE id_order=a.id) sum_qty 
 FROM tb_order a 
-WHERE a.status is null
+WHERE a.status is null 
+AND username = '$username'
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $order = mysqli_fetch_assoc($q);
+
+// echo '<pre>';
+// print_r($order);
+// echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
+// exit;
 if ($order) {
   if ($order['sum_qty']) {
+    // stop("Order status kosong tapi ada QTY nya. id [$order[id]]");
     jsurl("?order_detail&id_order=$order[id]");
   } else {
     $id_order = $order['id'];
