@@ -1,36 +1,77 @@
+<style>
+  .stats .sub_title {
+    font-size: 12px;
+  }
+</style>
 <?php
 set_h2('Admin Dashboard');
+include 'rstatus_order.php';
 
 $rs = [];
-$rs['reseller_count'] = "SELECT 1 FROM tb_reseller a 
+$s = "SELECT 1 FROM tb_reseller a 
   JOIN tb_user b ON a.username=b.username 
   WHERE b.active_status = 1";
-$rs['active_reseller_count'] = "$rs[reseller_count] AND b.whatsapp_status=1";
+$q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+$reseller_total = mysqli_num_rows($q);
+
+$s = "$s AND b.whatsapp_status=1";
+$q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+$reseller_aktif = mysqli_num_rows($q);
 
 
-$active_reseller_count = 15;
-$reseller_count = 19;
-$order_count = 24;
-$total_order_count = 26;
-$pembayaran_count = 23;
-$total_pembayaran_count = 23;
-$DO_count = 19;
-$total_DO_count = 23;
+
+
+
+
+# ============================================================
+# ARRAY ORDER
+# ============================================================
+$rorder = [];
+$rorder['null'] = 0;
+foreach ($rstatus_order as $status => $d) $rorder[$d['status']] = 0;
+
+$s = "SELECT status_order FROM tb_order WHERE delete_at is null";
+$q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+$total_order = mysqli_num_rows($q);
+while ($d = mysqli_fetch_assoc($q)) {
+  $d['status_order'] = $d['status_order'] === null ? 'null' : $d['status_order'];
+  $rorder[$d['status_order']]++;
+}
+
+$sum_rorder = array_sum($rorder);
+
+$new_order = $rorder['null'] + $rorder[0];
+$order_inprogres = $rorder[1] + $rorder[2] + $rorder[3];
+$order_dibatalkan = $rorder[-1] + $rorder[-2] + $rorder[-3];
 
 $rstat = [
-  'reseller' => [
-    'bg' => 'info',
-    'title' => 'Reseller Aktif',
-    'count' => $active_reseller_count,
-    'satuan_count' => 'Reseller',
-    'total_count' => $reseller_count,
+  'pesanan-baru' => [
+    'bg' => 'danger',
+    'title' => 'Pesanan Baru',
+    'sub_title' => 'Status 0 dan null',
+    'count' => $new_order,
   ],
-  'order' => [
-    'bg' => 'info',
+  'pesanan-in-progress' => [
+    'bg' => 'warning',
+    'title' => 'Pesanan In-Progress',
+    'sub_title' => 'Status 1, 2, dan 3',
+    'count' => $order_inprogres,
+  ],
+  'pesanan-sukses' => [
+    'bg' => 'success',
     'title' => 'Pesanan Sukses',
-    'count' => $order_count,
+    'sub_title' => 'Status 100',
+    'count' => $rorder[100],
     'satuan_count' => 'Pesanan',
-    'total_count' => $total_order_count,
+    'total_count' => $new_order + $order_inprogres,
+  ],
+  'pesanan-dibatalkan' => [
+    'bg' => 'secondary',
+    'title' => 'Pesanan Dibatalkan',
+    'sub_title' => 'Status negatif',
+    'count' => $order_dibatalkan,
+    'satuan_count' => 'Pesanan',
+    'total_count' => $total_order,
   ],
   'pembayaran' => [
     'bg' => 'success',
@@ -46,17 +87,29 @@ $rstat = [
     'satuan_count' => 'Pengiriman',
     'total_count' => $total_DO_count,
   ],
+  'reseller' => [
+    'bg' => 'info',
+    'title' => 'Reseller Aktif',
+    'count' => $reseller_aktif,
+    'satuan_count' => 'Reseller',
+    'total_count' => $reseller_total,
+  ],
 ];
 
 $stats = '';
 foreach ($rstat as $stat => $v) {
-  $bg = $v['count'] == $v['total_count'] ? $v['bg'] : 'danger';
+  // $bg = $v['count'] == $v['total_count'] ? $v['bg'] : 'danger';
+  $bg = $v['bg'];
+  $of_total = isset($v['total_count']) ? "of $v[total_count]" : '';
+  $satuan_count = isset($v['satuan_count']) ? "<span class='satuan-count'>$v[satuan_count]</span>" : '';
+  $sub_title = isset($v['sub_title']) ? "<div class='sub_title'>$v[sub_title]</div>" : '';
   $stats .= "
     <div class='col-md-4 col-xl-3 mb-4'>
       <div class='card'>
         <div class='card-body bg-$bg text-white'>
           <h5 class='card-title'>$v[title]</h5>
-          <p class='card-text'><span class='display-4'>$v[count]</span> of $v[total_count] $v[satuan_count]</p>
+          <div class='card-text'><span class='display-4'>$v[count]</span> $of_total $satuan_count</div>
+          $sub_title
         </div>
       </div>
     </div>  
@@ -64,7 +117,7 @@ foreach ($rstat as $stat => $v) {
 }
 
 echo "
-  <div class='row'>$stats</div>
+  <div class='row stats'>$stats</div>
 ";
 ?>
 
