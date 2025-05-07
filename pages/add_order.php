@@ -4,7 +4,7 @@ include 'add_order-process.php';
 
 
 # ============================================================
-# AUTO ADD ORDER JIKA TIDAK ADA ORDER PENDING 
+# AUTO TAMBAH ORDER JIKA TIDAK ADA ORDER PENDING 
 # ============================================================
 $s = "SELECT a.*,
 (
