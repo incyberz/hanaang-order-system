@@ -18,10 +18,9 @@ if (isset($_POST['btn_set_passwordZZZ'])) {
   # SELECT NOMOR WHATSAPP AT DB
   # ============================================================
   $s = "SELECT username as username_db FROM tb_user 
-  WHERE nama = 'reseller baru' 
-  AND whatsapp = '$post_whatsapp' 
+  WHERE whatsapp = '$post_whatsapp' 
   AND whatsapp_status = 1 
-  AND password is null 
+  AND active_status is null 
   ";
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   $d = mysqli_fetch_assoc($q);
@@ -29,8 +28,9 @@ if (isset($_POST['btn_set_passwordZZZ'])) {
     $username_db = $d['username_db'];
     $s = "UPDATE tb_user SET 
       username = '$post_username',
-      password = md5('$password'),
-      nama = '$post_nama' 
+      -- password = md5('$password'), -- sudah ada password by admin
+      nama = '$post_nama',
+      active_status = 1 
     WHERE username = '$username_db'";
   } else {
     $s = "INSERT INTO tb_user (
@@ -42,7 +42,7 @@ if (isset($_POST['btn_set_passwordZZZ'])) {
       '$post_username',
       '$post_nama',
       '$post_whatsapp',
-      '$password'
+      md5('$password')
     ) ON DUPLICATE KEY UPDATE 
       created_at = CURRENT_TIMESTAMP
     ";
@@ -50,10 +50,10 @@ if (isset($_POST['btn_set_passwordZZZ'])) {
 
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   sukses("
-    Akun berhasil dibuat.
+    Halo $post_nama! <br>Akun Anda berhasil dibuat.
     <hr>
-    Catat baik-baik akun Anda: 
-    <ul>
+    Catat baik-baik Akun Reseller Anda: 
+    <ul class='mt-2'>
       <li><b>Username</b>: $post_username</li>
       <li><b>Password</b>: $password</li>
     </ul>

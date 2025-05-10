@@ -11,3 +11,5 @@ $text_wa_from = "\n\n```From: Smart Hanaang App \nat $now```";
 
 $arr = explode('?', $_SERVER['REQUEST_URI']);
 $nama_server = "$_SERVER[REQUEST_SCHEME]://$_SERVER[SERVER_NAME]$arr[0]";
+
+$null = '<i class="abu">null</i>';

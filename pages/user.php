@@ -1,6 +1,9 @@
 <?php
 if ($username and $param != 'daftar_reseller' and $param != 'logout') {
   $tb2 = $role ? 'petugas' : 'reseller';
+  # ============================================================
+  # DATA USER + RESELLER/PETUGAS
+  # ============================================================
   $s = "SELECT 
   a.role,
   a.nama,
@@ -15,13 +18,13 @@ if ($username and $param != 'daftar_reseller' and $param != 'logout') {
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   $user = mysqli_fetch_assoc($q);
   if (!$user) {
-    alert("Belum ada data user (reseller) dengan username [$username]", 'info');
+    // alert("Belum ada data user (reseller) dengan username [$username]", 'info');
     # ============================================================
     # REDIRECT TO DAFTAR RESELLER
     # ============================================================
     jsurl('?daftar_reseller');
   }
   $nama_user = $user['nama'];
-  $role = $user['role'] ?? 'reseller';
+  $role = $user['role'];
   $is_adm = $role == 'admin' ? 1 : 0;
 }

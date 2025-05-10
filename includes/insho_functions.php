@@ -114,18 +114,7 @@ function gender($l_p)
   }
 }
 
-function tanggal($date, $format = 'd-M-Y')
-{
-  if (strtotime($date) > 0) {
-    return date($format, strtotime($date));
-  } else {
-    if ($date == '') {
-      return '<i>null</i>';
-    } else {
-      return '<i style=color:red>tanggal invalid</i>';
-    }
-  }
-}
+
 
 
 function clean_sql($a)

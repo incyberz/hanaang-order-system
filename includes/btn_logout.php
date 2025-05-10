@@ -1,7 +1,7 @@
 <style>
   .btn-logout {
     position: fixed;
-    z-index: 1;
+    z-index: 99;
     top: 15px;
     right: 15px;
   }

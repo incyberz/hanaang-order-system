@@ -1,7 +1,22 @@
+<style>
+  .li-harga {
+    list-style: square;
+    cursor: pointer;
+    transition: .2s;
+  }
+
+  .li-harga:hover {
+    background: yellow;
+    letter-spacing: .5px;
+  }
+</style>
 <?php
 include 'add_order-styles.php';
 include 'add_order-process.php';
+include 'includes/hari_tanggal.php';
 
+$img_stars = img_icon('stars');
+$default_qty = 50; // penawaran QTY default untuk reseller
 
 # ============================================================
 # AUTO TAMBAH ORDER JIKA TIDAK ADA ORDER PENDING 
@@ -11,7 +26,7 @@ $s = "SELECT a.*,
   SELECT SUM(qty) FROM tb_order_items 
   WHERE id_order=a.id) sum_qty 
 FROM tb_order a 
-WHERE a.status is null 
+WHERE a.status_order = 0 
 AND username = '$username'
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
@@ -45,39 +60,39 @@ if ($order) {
 # ============================================================
 $s = "SELECT *,
 (
-  SELECT harga FROM tb_harga_reseller 
+  SELECT harga FROM tb_harga_fixed 
   WHERE username = '$username' -- reseller yang ini
   AND id_produk = a.id -- produk yang ini
   ORDER BY created_at DESC LIMIT 1 -- hanya harga terbaru 
-  ) harga_reseller 
+  ) harga_fixed 
 FROM tb_produk a 
 WHERE a.status=1 -- masih diproduksi
 ORDER BY 
-a.merk, -- urutkan berdasarkan merk
-a.harga DESC -- lalu urutkan berdasarkan harga tertinggi
+a.tanggal_produksi DESC -- urutkan berdasarkan tanggal produksi
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $row_produk = '';
 $i = 0;
 $total_bayar = 0;
+$terbaru = " $img_stars (terbaru) $img_stars";
 while ($d = mysqli_fetch_assoc($q)) {
   $id = $d['id'];
   $i++;
   $tr_class = '';
-  if ($d['harga_reseller']) {
+
+  if ($d['harga_fixed']) { // harga fixed
 
     $qty = ''; // ZZZ
     $jumlah = 0; // ZZZ
 
 
 
-    $jumlah_show = "<input disabled class='form-control nominal jumlah input-show' id='jumlah--$id' value='$jumlah' />";
 
     $kalkulasi_row = "
       <div class='nominal d-flex gap-2'>
-        <div>$d[harga_reseller]</div>
+        <div>$d[harga_fixed]</div>
         <div>x</div>
-        <div class=hideit id=harga_reseller--$id>$d[harga_reseller]</div>
+        <div class=hideit id=harga_fixed--$id>$d[harga_fixed]</div>
         <div>
           <input 
             placeholder='QTY'
@@ -91,33 +106,91 @@ while ($d = mysqli_fetch_assoc($q)) {
           />
         </div>
         <div>=</div>
-        <div class=flex-fill>$jumlah_show</div>
+        <div class=flex-fill>
+          <input disabled class='form-control nominal jumlah input-show' id='jumlah--$id' value='$jumlah' />
+        </div>
       </div>    
     ";
-  } else {
+  } else { // tidak ada harga fixed, gunakan harga default by system
+    $s2 = "SELECT * FROM tb_rule WHERE max_jarak >= $user[jarak]";
+    $q2 = mysqli_query($cn, $s2) or die(mysqli_error($cn));
+    $li_harga = '';
+    $rharga_jual = [];
+    $min = null;
+    $max = null;
+    while ($d2 = mysqli_fetch_assoc($q2)) {
+      $min = $min ?? $d2['min_order'];
+      $max = $d2['min_order'];
+      $harga_jual = round($d['harga_beli'] * $d2['persen_up'] / 10000) * 100;
+      $rharga_jual[$d2['min_order']] = $harga_jual;
+      $li_harga .= "<li class=li-harga id=li-harga--$d2[min_order]--$d[id]--$harga_jual>min. order: $d2[min_order] => <span class='harga-jual' id=harga-jual--$d2[min_order]--$d[id]>$harga_jual</span></li>";
+    }
+
+
     $tr_class = 'tanyakan';
-    $kalkulasi_row = "<a href=?tanyakan&hal=ZZZ class='miring'>Tanyakan Harga untuk Anda</a>";
+    // $kalkulasi_row = "<a href=?tanyakan&hal=ZZZ class='miring'>Tanyakan Harga untuk Anda</a>";
+
+    $harga_default = $rharga_jual[$default_qty] ?? '???';
+
+    $kalkulasi_row = "
+      <div class='nominal d-flex gap-2'>
+        <div id=harga_fixed--$id>$harga_default</div>
+        <div>x</div>
+        <div>
+          <input 
+            placeholder='QTY'
+            type=number 
+            class='form-control qty' 
+            name='qty[$id]'
+            id='qty--$id'
+            min='$min' 
+            max='$max' 
+          />
+        </div>
+        <div>=</div>
+        <div class=flex-fill>
+          <input disabled class='form-control nominal jumlah input-show' id='jumlah--$id' value='0' />
+        </div>
+        <div class='hideit' id=clear--$id>
+          <span class='btn btn-sm btn-secondary btn-clear' id=btn-clear--$id>C</span>
+        </div>        
+      </div>    
+
+
+      <ul class='my-3' id=ul--$id>
+        $li_harga
+      </ul>
+      <a href=?tanyakan&hal=ZZZ class='miring'>Tanyakan Harga untuk Anda</a>
+    ";
+
+
     $input_qty = '-';
     $jumlah_show = '-';
   }
+
+  $tanggal_produksi = tanggal($d['tanggal_produksi']);
+
   $row_produk .= "
     <div id=row--$id class='$tr_class row-produk'>
       <div class='d-flex gap-2'>
         <div class='pt1'>
-          <input type=checkbox class='checkbox' id=checkbox--$id>
+          <input type=checkbox class='checkbox' id=checkbox--$id >
         </div>
         <div>
-          <div class='mb-2 darkblue bold'>
-            <label for=checkbox--$id class=hover>$d[nama]</label>
+          <div class='mb-2 darkblue '>
+            <label for=checkbox--$id class='hover bold'>$d[nama] $terbaru</label>
+            <div class='f12 abu'>
+              <b>Produksi</b>: $tanggal_produksi
+            </div>
           </div>
           <div class='blok-kalkulasi hideit' id=blok-kalkulasi--$id>
             $kalkulasi_row
-            <div class='f12 abu miring mt1 mb1'>min: $d[min_order], max: $d[max_order], pengiriman: $d[alat_kirim]</div>
           </div>
         </div>
       </div>
     </div>
   ";
+  $terbaru = '';
 }
 
 
@@ -132,7 +205,18 @@ while ($d = mysqli_fetch_assoc($q)) {
     <div class="text-center">
       <h2 class="">Form Pemesanan</h2>
       <div class="mb-4 f14 abu">(Add Order)</div>
+      <?php
+      if (!$user['jarak']) {
+        echo '<pre>';
+        print_r('zzz');
+        echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
+        exit;
+      }
+
+
+      ?>
       <p>Silahkan Anda ceklis produk yang tersedia lalu masukan QTY!</p>
+      <p><b>Jarak</b>: <?= $user['jarak'] ?>km</p>
     </div>
 
     <div class="blok-row-produk">
@@ -191,10 +275,39 @@ while ($d = mysqli_fetch_assoc($q)) {
       let qty = parseInt(index.value);
       let rid = index.id.split("--");
       let id = rid[1];
-      let harga = parseInt($('#harga_reseller--' + id).text());
+      let selectedHargaJual = 0;
+      // ===============================================
+      // PENCARIAN HARGA TERDEKAT BERDASARKAN QTY
+      // ===============================================
+      // console.log(id);
+      $('.harga-jual').each((val, idx) => {
+        let rid2 = idx.id.split("--");
+        let minOrder = parseInt(rid2[1]);
+        let idProduk = rid2[2];
 
-      if (!isNaN(harga) && !isNaN(qty)) {
-        let jumlah = harga * qty;
+        if (id == idProduk) {
+          let hargaJual = parseInt($(`#harga-jual--${minOrder}--${idProduk}`).text());
+          if (minOrder <= qty) {
+            selectedHargaJual = hargaJual;
+          }
+          // console.log(id, minOrder, idProduk, hargaJual, selectedHargaJual);
+
+        }
+
+
+
+      })
+
+
+
+
+      let harga = parseInt($('#harga_fixed--' + id).text());
+      console.log(id, selectedHargaJual, harga);
+      // let harga = selectedHargaJual;
+      $('#harga_fixed--' + id).text(selectedHargaJual);
+
+      if (!isNaN(selectedHargaJual) && !isNaN(qty)) {
+        let jumlah = selectedHargaJual * qty;
         $('#jumlah--' + id).val(jumlah);
         total += jumlah;
         // console.log(qty, jumlah, total);
@@ -246,6 +359,35 @@ while ($d = mysqli_fetch_assoc($q)) {
 
     $("#lihat-info").click(function() {
       $('#blok-info').slideToggle();
+    });
+    $(".li-harga").click(function() {
+      let tid = $(this).prop('id');
+      let rid = tid.split('--');
+      let aksi = rid[0];
+      let minOrder = rid[1];
+      let idProduk = rid[2];
+      let harga = rid[3];
+      // console.log(aksi, id, id2);
+
+      $('#harga_fixed--' + idProduk).text(harga);
+      $('#qty--' + idProduk).val(minOrder);
+      $('#ul--' + idProduk).slideUp();
+      $('#clear--' + idProduk).fadeIn();
+
+      hitung_total();
+    });
+
+    $(".btn-clear").click(function() {
+      let tid = $(this).prop('id');
+      let rid = tid.split('--');
+      let aksi = rid[0];
+      let idProduk = rid[1];
+      $('#qty--' + idProduk).val('');
+      $('#jumlah--' + idProduk).val('0');
+      $('#ul--' + idProduk).slideDown();
+      $('#clear--' + idProduk).fadeOut();
+
+      hitung_total();
     });
 
   });

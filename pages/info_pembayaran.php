@@ -16,7 +16,13 @@ while ($d = mysqli_fetch_assoc($q)) {
   <div class="card">
     <div class="card-header bg-info text-white">Info Pembayaran</div>
     <div class="card-body">
-      <div>Mohon ditransfer sesuai total bayar ke:</div>
+      <div>Jika Metode Pembayaran:</div>
+      <ul>
+        <li><b>DP</b>: silahkan Anda transfer uang muka minimal 20% dari total bayar</li>
+        <li><b>Konsinyasi</b>: silahkan Anda hubungi Admin terlebih dahulu</li>
+        <li><b>Full</b>: silahkan Anda transfer sesuai Total Bayar</li>
+      </ul>
+      <div>Informasi Transfer Pembayaran:</div>
       <ul>
         <?= $info_bayars ?>
       </ul>

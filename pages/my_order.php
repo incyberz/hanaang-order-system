@@ -18,7 +18,7 @@ $s = "SELECT a.*,
 FROM tb_order a 
 WHERE a.username = '$username'
 AND delete_at is null
-ORDER BY a.tanggal 
+ORDER BY a.tanggal_order DESC 
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $tr = null;
@@ -26,17 +26,17 @@ $div = null;
 $i = 0;
 while ($d = mysqli_fetch_assoc($q)) {
   $id = $d['id'];
-  $status = $d['status'];
-  if ($status === null) $bisa_add_order = false;
+  $status_order = $d['status_order'];
+  if ($status_order === null) $bisa_add_order = false;
   $i++;
-  $tanggal = date('d-M-Y', strtotime($d['tanggal']));
-  $jam = date('H:i', strtotime($d['tanggal']));
+  $tanggal = date('d-M-Y', strtotime($d['tanggal_order']));
+  $jam = date('H:i', strtotime($d['tanggal_order']));
 
   # ============================================================
   # FITUR DELETE
   # ============================================================
   $btn_delete = "<span class=hover onclick='alert(`Tidak bisa delete order ini.`)'>$img_delete_disabled</span>";
-  if ($status <= 0) {
+  if ($status_order <= 0) {
     $btn_delete = "<button class=transparan onclick='alert(`Delete order ini.`)' value='$id--$d[sum_qty]' name=btn_delete_order>$img_delete</button>";
   }
 
@@ -44,9 +44,9 @@ while ($d = mysqli_fetch_assoc($q)) {
   # FITUR PAUSE
   # ============================================================
   $btn_pause = '';
-  if ($status === '0' || $status === '1') {
+  if ($status_order === '0' || $status_order === '1') {
     $btn_pause = "<button class=transparan onclick='alert(`Pause order ini.`)' value=$id--0 name=btn_pause_order>$img_pause</button>";
-  } elseif ($status == -2) {
+  } elseif ($status_order == -2) {
     $btn_pause = "<button class=transparan onclick='alert(`Lanjutkan order ini.`)' value=$id--1 name=btn_pause_order>$img_play</button>";
   }
 
@@ -59,23 +59,23 @@ while ($d = mysqli_fetch_assoc($q)) {
   if ($d['sum_qty']) {
     $status_show = show_status_order('');
 
-    if ($status !== null) {
-      $petugas = $rpetugas[$d['petugas']]['nama'];
+    if ($status_order !== null) {
+      $petugas = $rpetugas[$d['petugas']]['nama'] ?? '-';
       $info_status .= "<div class='f12 text-success'><b>Admin</b>: $petugas</div>";
 
-      $nama_status = $rstatus_order[$status]['nama_status'];
-      $bg = $rstatus_order[$status]['bg'];
-      $status_show = show_status_order("$status - $nama_status", $bg);
-      if ($status == -1) {
+      $nama_status = $rstatus_order[$status_order]['nama_status'];
+      $bg = $rstatus_order[$status_order]['bg'];
+      $status_show = show_status_order("$status_order - $nama_status", $bg);
+      if ($status_order == -1) {
         $info_status .= "<div class='f12 text-danger'>$d[info_status]</div>";
-      } elseif ($status >= 1) {
+      } elseif ($status_order >= 1) {
         $qc = $rpetugas[$d['qc']]['nama'];
         $info_status .= "<div class='f12 text-success'><b>QC</b>: $qc</div>";
-        if ($status >= 2) {
+        if ($status_order >= 2) {
           $kurir = $rpetugas[$d['kurir']]['nama'];
           $info_status .= "<div class='f12 text-success'><b>Kurir</b>: $kurir</div>";
-          if ($status == 100) {
-            $penerima = $d['nama_penerima'] ? ucwords(strtolower($d['nama_penerima'])) : 'reseller';
+          if ($status_order == 100) {
+            $penerima = $d['penerima'] ? ucwords(strtolower($d['penerima'])) : 'reseller';
             $info_status .= "<div class='f12 text-success'><b>Penerima</b>: $penerima</div>";
           }
         }

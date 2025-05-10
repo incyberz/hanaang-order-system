@@ -10,8 +10,8 @@ $role = $_SESSION['hanaang_role'] ?? null;
 
 
 // ZZZ
-$_SESSION['hanaang_username'] = 'admin';
-$_SESSION['hanaang_role'] = 'admin';
+// $_SESSION['hanaang_username'] = 'admin';
+// $_SESSION['hanaang_role'] = 'admin';
 
 # ============================================================
 # PETUGAS DEFAULT

@@ -1,6 +1,7 @@
 <?php
 include "$dotdot/includes/key2kolom.php";
 include 'includes/script_btn_aksi.php';
+include 'includes/hari_tanggal.php';
 include 'order_detail-process.php';
 include 'rstatus_order.php';
 
@@ -9,6 +10,16 @@ $null = '<i class=abu>null</i>';
 $id_order = $_GET['id_order'] ?? null;
 if (!$id_order || !$username)  jsurl('?');
 
+$get_username = $_GET['username'] ?? null;
+$user_reseller = [];
+if ($role == 'admin') {
+  if (!$get_username) kosong('get_username');
+  $s = "SELECT * FROM tb_user a 
+  JOIN tb_reseller b ON a.username=b.username 
+  WHERE a.username = '$get_username'";
+  $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+  $user_reseller = mysqli_fetch_assoc($q);
+}
 
 
 set_title('Order Detail');
@@ -16,10 +27,11 @@ set_title('Order Detail');
 # ============================================================
 # ORDER DETAIL
 # ============================================================
+$sql_username = $role == 'admin' ? '1' : "a.username = '$username' -- order milik sendiri ";
 $s = "SELECT 
 a.id as order_id,
-a.tanggal,
-(SELECT CONCAT(status,' - ',nama_status) FROM tb_status_order WHERE status=a.status) status_order, 
+a.tanggal_order,
+(SELECT CONCAT(status,' - ',nama_status) FROM tb_status_order WHERE status=a.status_order) status_pemesanan, 
 a.tanggal_bayar,
 a.tanggal_cek,
 a.tanggal_kirim,
@@ -31,21 +43,24 @@ a.tanggal_terima,
 a.*
 
 FROM tb_order a WHERE id='$id_order'
-AND a.username = '$username' -- order milik sendiri 
+AND $sql_username
 AND a.delete_at is null -- belum dihapus
 ";
+echo '<pre>';
+print_r($s);
+echo '</pre>';
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $tr = '';
 if (mysqli_num_rows($q) > 1) stop('Multiple Data Order pada order detail.');
 if (!mysqli_num_rows($q)) stop('Data Order Null pada order detail.');
 $order = mysqli_fetch_assoc($q);
-$status = $order['status'];
+$status_order = $order['status_order'];
 
 foreach ($order as $key => $value) {
   if (
     $key == 'id'
     || $key == 'username'
-    || $key == 'status'
+    || $key == 'status_order'
     || $key == 'petugas'
     || $key == 'qc'
     || $key == 'kurir'
@@ -91,30 +106,56 @@ $order_detail = "
 # ORDER ITEMS 
 # ============================================================
 $s = "SELECT 
-(SELECT nama FROM tb_produk WHERE id=a.id_produk) nama_produk,
+b.nama as nama_produk,
+b.harga_beli,
+b.tanggal_produksi,
 (
-  SELECT harga FROM tb_harga_reseller 
+  SELECT harga FROM tb_harga_fixed 
   WHERE id_produk=a.id_produk -- produk yang ini
   AND username='$username' -- untuk reseller ini
-  ) harga_satuan,
+  ) harga_fixed,
 a.qty as jumlah_pesan,
 a.* 
-FROM tb_order_items a
+FROM tb_order_items a 
+JOIN tb_produk b ON a.id_produk=b.id 
 WHERE a.id_order=$id_order";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
-$tr = '';
 if (mysqli_num_rows($q)) {
   $i = 0;
   $th = '';
+  $tr = '';
+  $div = '';
   $total_rp = 0;
   $total_item = 0;
+  $show = [];
   while ($d = mysqli_fetch_assoc($q)) {
     $i++;
     $td = '';
     $id = $d['id'];
 
+    if ($d['harga_fixed']) {
+      $d['jumlah_rp'] = $d['harga_fixed'] * $d['jumlah_pesan'];
+      unset($d['harga']);
+    } else {
+      unset($d['harga_fixed']);
+      # ============================================================
+      # PENCARIAN HARGA BERDASARKAN JARAK
+      # ============================================================
+      $jarak = $role ? $user_reseller['jarak'] : $user['jarak'];
+      $s2 = "SELECT * FROM tb_rule 
+      WHERE max_jarak >= $jarak 
+      AND min_order <= $d[jumlah_pesan] 
+      ORDER BY min_order DESC 
+      LIMIT 1
+      ";
+      $q2 = mysqli_query($cn, $s2) or die(mysqli_error($cn));
+      if (mysqli_num_rows($q2) != 1) stop('Invalid num_rows for tb_rule');
+      while ($d2 = mysqli_fetch_assoc($q2)) {
+        $d['harga'] = round($d['harga_beli'] * $d2['persen_up'] / 10000) * 100;
+      }
 
-    $d['jumlah_rp'] = $d['harga_satuan'] * $d['jumlah_pesan'];
+      $d['jumlah_rp'] = $d['harga'] * $d['jumlah_pesan'];
+    }
 
     $total_item += $d['jumlah_pesan'];
     $total_rp += $d['jumlah_rp'];
@@ -127,24 +168,30 @@ if (mysqli_num_rows($q)) {
         || $key == 'id_order'
         || $key == 'id_produk'
         || $key == 'qty'
+        || $key == 'harga_beli'
+        || $key == 'tanggal_produksi'
       ) {
         continue;
-      } elseif ($key == 'jumlah_pesan' || $key == 'harga_satuan' || $key == 'jumlah_rp') {
+      } elseif ($key == 'jumlah_pesan' || $key == 'harga_fixed' || $key == 'jumlah_rp' || $key == 'harga') {
         $value = number_format($value);
         $value = "<div class='consolas text-end'>$value</div>";
         $th_class = 'text-end';
       } elseif ($key == 'nama_produk') {
 
         $btn_delete = "<i class=hover onclick='alert(`Tidak bisa hapus item karena sudah ditangani Petugas.\n\nSilahkan Hapus Order untuk menghapus Order dan item-itemnya.`)'>$img_delete_disabled</i>";
-        if (!$status) {
+        if (!$status_order) {
           $btn_delete = "<button class=transparan onclick='return confirm(`Delete Item ini?`)' name= btn_delete_item value='$id'>$img_delete</button>";
-        } elseif ($status >= 3) { // tiba di tujuan
+        } elseif ($status_order >= 3) { // tiba di tujuan
           $btn_delete = $img_check;
         }
 
+        $tanggal = tanggal($d['tanggal_produksi']);
         $value = "
           <div class='d-flex gap-2 justify-content-between'>
-            <div>$value</div>
+            <div>
+              $value
+              <div class='f12 abu'><b>Produksi</b>: $tanggal</div>
+            </div>
             <div>$btn_delete</div>
           </div>
         ";
@@ -155,13 +202,40 @@ if (mysqli_num_rows($q)) {
       }
 
 
+      $show[$key] = $value;
       $td .= "<td>$value</td>";
     }
+
+    # ============================================================
+    # FINAL TR
+    # ============================================================
     $tr .= "
       <tr>
         <td>$i</td>
         $td
       </tr>
+    ";
+
+    # ============================================================
+    # FINAL DIV
+    # ============================================================
+    $div .= "
+      <div class='row-data border-top gradasi-toska py-3 px-2' id=row-data--$id>
+        <div class=f12>$i</div>
+        <div class='bold darkblue'>$show[nama_produk]</div>
+        <div class='d-flex justify-content-between border-top py-1'>
+          <div><b>Jumlah Pesan</b>:</div> 
+          $show[jumlah_pesan]
+        </div>
+        <div class='d-flex justify-content-between border-top py-1'>
+          <div><b>Harga</b>:</div> 
+          $show[harga]
+        </div>
+        <div class='d-flex justify-content-between border-top py-1'>
+          <div><b>Jumlah Rp</b>:</div> 
+          $show[jumlah_rp]
+        </div>
+      </div>
     ";
   }
 
@@ -171,19 +245,28 @@ if (mysqli_num_rows($q)) {
   // exit;
 
   $total_rp_show = number_format($total_rp);
-  if ($order['status'] === null) {
+  if ($order['status_order'] === null) {
     if ($order['sum_qty']) {
       $status_show = show_status_order('');
     } else {
       $status_show = show_status_order(null);
     }
   } else {
-    $nama_status = $rstatus_order[$order['status']]['nama_status'];
-    $bg_status = $rstatus_order[$order['status']]['bg'];
-    $status_show = show_status_order("$order[status] - $nama_status", $bg_status);
+    $nama_status = $rstatus_order[$order['status_order']]['nama_status'];
+    $bg_status = $rstatus_order[$order['status_order']]['bg'];
+    $status_show = show_status_order("$order[status_order] - $nama_status", $bg_status);
   }
 
-  $tanggal = date('d-M-Y, H:i', strtotime($order['tanggal']));
+  $tanggal_order = tanggal($order['tanggal_order']);
+  if ($role) {
+    $reseller = $user_reseller['nama'];
+    $jarak = $user_reseller['jarak'];
+    $alamat_kirim = $order['alamat_kirim'] ?? $user_reseller['alamat_lengkap'];
+  } else {
+    $reseller = $user['nama'];
+    $jarak = $user['jarak'];
+    $alamat_kirim = $order['alamat_kirim'] ?? $user['alamat_lengkap'];
+  }
 
   echo "
     <form method=post>
@@ -191,7 +274,22 @@ if (mysqli_num_rows($q)) {
       <div class='row'>
         <div class='col-md-6 col-xl-3'>
           <div class='border-top p-1 py-2'>
-            <b>Tanggal</b>: $tanggal
+            <b>Reseller</b>: $reseller
+          </div>
+        </div>
+        <div class='col-md-6 col-xl-6'>
+          <div class='border-top p-1 py-2'>
+            <b>Alamat Kirim</b>: $alamat_kirim
+          </div>
+        </div>
+        <div class='col-md-6 col-xl-3'>
+          <div class='border-top p-1 py-2'>
+            <b>Jarak</b>: $jarak km
+          </div>
+        </div>
+        <div class='col-md-6 col-xl-3'>
+          <div class='border-top p-1 py-2'>
+            <b>Tanggal</b>: $tanggal_order
           </div>
         </div>
         <div class='col-md-6 col-xl-3'>
@@ -213,26 +311,36 @@ if (mysqli_num_rows($q)) {
         </div>
       </div>
       <h3 class='text-center text-lg-start mb-3 mt-4'>Order Items</h3>
-      <table class='table gradasi-toska'>
-        <thead class='bg-info text-white'>
-          <th>No</th>
-          $th
-        </thead>
-        $tr
-        <tfoot class='gradasi-kuning'>
-          <tr>
-            <td colspan=4 class=text-end>Total Bayar</td>
-            <td class='consolas text-end f24'>$total_rp_show</td>
-          </tr>
-        </tfoot>
 
-      </table>
+      <div class=d-md-none>
+        $div
+        <div class='text-center gradasi-kuning px-2 py-3'>
+          <div>Total Bayar</div>
+          <div class='f24'>$total_rp_show</div>
+        </div>
+      </div>
+
+      <div class='d-none d-md-block'>
+        <table class='table gradasi-toska'>
+          <thead class='bg-info text-white'>
+            <th>No</th>
+            $th
+          </thead>
+          $tr
+          <tfoot class='gradasi-kuning'>
+            <tr>
+              <td colspan=4 class=text-end>Total Bayar</td>
+              <td class='consolas text-end f24'>$total_rp_show</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </form>
 
     $order_detail
   ";
 
-  include 'info_pembayaran.php';
+  include $role ? 'manage_order.php' : 'info_pembayaran.php';
 } else {
   alert("Tidak ada detail items dari order id [$id_order]");
   jsurl("?add_order", 3000);

@@ -1,7 +1,7 @@
 <style>
   .btn-home {
     position: fixed;
-    z-index: 1;
+    z-index: 999;
     top: 15px;
     left: 15px;
   }
