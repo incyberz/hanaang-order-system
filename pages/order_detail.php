@@ -2,7 +2,7 @@
 include "$dotdot/includes/key2kolom.php";
 include 'includes/script_btn_aksi.php';
 include 'includes/hari_tanggal.php';
-include 'order_detail-process.php';
+include 'order-process.php';
 include 'rstatus_order.php';
 
 $null = '<i class=abu>null</i>';
@@ -32,7 +32,7 @@ $s = "SELECT
 a.id as order_id,
 a.tanggal_order,
 (SELECT CONCAT(status,' - ',nama_status) FROM tb_status_order WHERE status=a.status_order) status_pemesanan, 
-a.tanggal_bayar,
+a.tanggal_lunas,
 a.tanggal_cek,
 a.tanggal_kirim,
 a.tanggal_terima,
@@ -40,15 +40,13 @@ a.tanggal_terima,
 (SELECT nama FROM tb_user WHERE username=a.qc) petugas_qc, 
 (SELECT nama FROM tb_user WHERE username=a.kurir) petugas_kurir,
 (SELECT SUM(qty) FROM tb_order_items WHERE id_order=a.id) sum_qty,
+(SELECT nama_status FROM tb_status_bayar WHERE status=a.status_bayar) metode_bayar,
 a.*
 
 FROM tb_order a WHERE id='$id_order'
 AND $sql_username
 AND a.delete_at is null -- belum dihapus
 ";
-echo '<pre>';
-print_r($s);
-echo '</pre>';
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $tr = '';
 if (mysqli_num_rows($q) > 1) stop('Multiple Data Order pada order detail.');
@@ -118,14 +116,16 @@ a.qty as jumlah_pesan,
 a.* 
 FROM tb_order_items a 
 JOIN tb_produk b ON a.id_produk=b.id 
-WHERE a.id_order=$id_order";
+WHERE a.id_order=$id_order 
+ORDER BY b.tanggal_produksi DESC
+";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 if (mysqli_num_rows($q)) {
   $i = 0;
   $th = '';
   $tr = '';
   $div = '';
-  $total_rp = 0;
+  $total_bayar = 0;
   $total_item = 0;
   $show = [];
   while ($d = mysqli_fetch_assoc($q)) {
@@ -158,7 +158,7 @@ if (mysqli_num_rows($q)) {
     }
 
     $total_item += $d['jumlah_pesan'];
-    $total_rp += $d['jumlah_rp'];
+    $total_bayar += $d['jumlah_rp'];
 
     foreach ($d as $key => $value) {
       $th_class = '';
@@ -244,7 +244,7 @@ if (mysqli_num_rows($q)) {
   // echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
   // exit;
 
-  $total_rp_show = number_format($total_rp);
+  $total_bayar_show = number_format($total_bayar);
   if ($order['status_order'] === null) {
     if ($order['sum_qty']) {
       $status_show = show_status_order('');
@@ -274,21 +274,6 @@ if (mysqli_num_rows($q)) {
       <div class='row'>
         <div class='col-md-6 col-xl-3'>
           <div class='border-top p-1 py-2'>
-            <b>Reseller</b>: $reseller
-          </div>
-        </div>
-        <div class='col-md-6 col-xl-6'>
-          <div class='border-top p-1 py-2'>
-            <b>Alamat Kirim</b>: $alamat_kirim
-          </div>
-        </div>
-        <div class='col-md-6 col-xl-3'>
-          <div class='border-top p-1 py-2'>
-            <b>Jarak</b>: $jarak km
-          </div>
-        </div>
-        <div class='col-md-6 col-xl-3'>
-          <div class='border-top p-1 py-2'>
             <b>Tanggal</b>: $tanggal_order
           </div>
         </div>
@@ -309,6 +294,21 @@ if (mysqli_num_rows($q)) {
             <div class='zzz hideit'>Tanya Posisi Pengiriman</div>
           </div>
         </div>
+        <div class='col-md-6 col-xl-3'>
+          <div class='border-top p-1 py-2'>
+            <b>Reseller</b>: $reseller
+          </div>
+        </div>
+        <div class='col-md-6 col-xl-6'>
+          <div class='border-top p-1 py-2'>
+            <b>Alamat Kirim</b>: $alamat_kirim
+          </div>
+        </div>
+        <div class='col-md-6 col-xl-3'>
+          <div class='border-top p-1 py-2'>
+            <b>Jarak</b>: $jarak km
+          </div>
+        </div>
       </div>
       <h3 class='text-center text-lg-start mb-3 mt-4'>Order Items</h3>
 
@@ -316,7 +316,7 @@ if (mysqli_num_rows($q)) {
         $div
         <div class='text-center gradasi-kuning px-2 py-3'>
           <div>Total Bayar</div>
-          <div class='f24'>$total_rp_show</div>
+          <div class='f24'>$total_bayar_show</div>
         </div>
       </div>
 
@@ -330,7 +330,7 @@ if (mysqli_num_rows($q)) {
           <tfoot class='gradasi-kuning'>
             <tr>
               <td colspan=4 class=text-end>Total Bayar</td>
-              <td class='consolas text-end f24'>$total_rp_show</td>
+              <td class='consolas text-end f24'>$total_bayar_show</td>
             </tr>
           </tfoot>
         </table>

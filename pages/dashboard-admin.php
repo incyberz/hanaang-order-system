@@ -156,10 +156,6 @@ while ($d = mysqli_fetch_assoc($q)) {
 $order_inprogres = $rorder[1] + $rorder[2] + $rorder[3];
 $order_dibatalkan = $rorder[-1] + $rorder[-2] + $rorder[-3];
 
-echo '<pre>';
-print_r($rorder);
-echo '</pre>';
-
 $rstats['pesanan'] = [
   'pesanan-baru' => [
     'bg' => 'danger',
