@@ -111,6 +111,14 @@ if ($tb == 'ZZZ') {
     foto_lokasi 
   FROM tb_reseller a JOIN tb_user b ON a.username=b.username WHERE b.whatsapp_status is null";
 
+  // revisi select
+  $s = "SELECT 
+    username,
+    nama,
+    whatsapp
+  FROM tb_user WHERE whatsapp_status is null";
+
+
 
   # ============================================================
   # PESANAN | ORDER
@@ -258,7 +266,20 @@ if (mysqli_num_rows($q)) {
     # AKSI TIAP ROW
     # ============================================================
     $aksi = '-';
-    include 'tampil_data-aksi_tiap_row.php';
+    // include 'tampil_data-aksi_tiap_row.php';
+    if (isset($d['qty_order'])) {
+      if ($d['qty_order']) { // hanya yang sudah jelas qty nya
+        $aksi = "<a class='btn btn-sm btn-primary' href='?order_detail&id_order=$d[id]&username=$d[username]'>Manage</a>";
+      } else {
+        $aksi = '<span class="btn btn-secondary btn-sm" onclick="alert(`Reseller belum memasukan QTY Order.`)">Manage</span>';
+      }
+    } else {
+      if (isset($d['kecamatan'])) { // Reseller Aktif
+        $aksi = "<a class='btn btn-sm btn-secondary' href='#ZZZ'>Recek Whatsapp</a>";
+      } else {
+        $aksi = "<a class='btn btn-sm btn-primary' href='#ZZZ'>Cek Whatsapp</a>";
+      }
+    }
 
     # ============================================================
     # FINAL TR

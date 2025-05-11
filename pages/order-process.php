@@ -27,11 +27,6 @@ if ($_POST) {
 
     WHERE id='$_POST[btn_set_metode_bayar]'";
 
-    // echo '<pre>';
-    // print_r($_POST);
-    // print_r($s);
-    // echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
-    // exit;
 
 
     # ============================================================

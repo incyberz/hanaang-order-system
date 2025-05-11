@@ -79,7 +79,10 @@ $reseller_total = mysqli_num_rows($q);
 $s = "$s AND b.whatsapp_status=1";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $reseller_aktif = mysqli_num_rows($q);
-$unverified_reseller = $reseller_total - $reseller_aktif;
+
+$s = "SELECT 1 FROM tb_user WHERE whatsapp_status is null";
+$q = mysqli_query($cn, $s) or die(mysqli_error($cn));
+$unverified_reseller = mysqli_num_rows($q);
 
 $s = "SELECT 1 FROM tb_user 
 WHERE role is null 
@@ -101,7 +104,7 @@ $rstats['reseller'] = [
     'title' => 'Unverified Whatsapp',
     'count' => $unverified_reseller,
     'href' => '?tampil_data&tb=unverified_whatsapp&title=Unverified Whatsapp',
-    'satuan_count' => 'Reseller',
+    'satuan_count' => 'Akun',
   ],
   'user-default' => [
     'bg' => 'danger',
@@ -154,9 +157,6 @@ while ($d = mysqli_fetch_assoc($q)) {
 }
 
 $order_inprogres = $rorder[1] + $rorder[2] + $rorder[3];
-echo '<pre>';
-print_r($rorder);
-echo '</pre>';
 $order_dibatalkan = $rorder[-1] + $rorder[-2] + $rorder[-3];
 
 $rstats['pesanan'] = [

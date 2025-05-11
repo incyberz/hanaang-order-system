@@ -243,11 +243,6 @@ if (mysqli_num_rows($q)) {
     ";
   }
 
-  // echo '<pre>';
-  // print_r($order);
-  // echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
-  // exit;
-
   $total_bayar_show = number_format($total_bayar);
   if ($order['status_order'] === null) {
     if ($order['sum_qty']) {

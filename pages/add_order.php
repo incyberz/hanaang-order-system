@@ -32,10 +32,6 @@ AND username = '$username'
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $order = mysqli_fetch_assoc($q);
 
-// echo '<pre>';
-// print_r($order);
-// echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
-// exit;
 if ($order) {
   if ($order['sum_qty']) {
     // stop("Order status kosong tapi ada QTY nya. id [$order[id]]");

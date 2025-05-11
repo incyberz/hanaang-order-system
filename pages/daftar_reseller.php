@@ -65,12 +65,6 @@ if (isset($_POST['btn_daftar_reseller'])) {
   ) ON DUPLICATE KEY UPDATE
     created_at = CURRENT_TIMESTAMP 
   ";
-  // echo '<pre>';
-  // print_r($s);
-  // echo '<hr>';
-  // print_r($_POST);
-  // echo '<b style=color:red>Developer SEDANG DEBUGING: exit(true)</b></pre>';
-  // exit;
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   jsurl('?');
 }

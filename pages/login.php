@@ -10,9 +10,6 @@ include 'login-styles.php';
 if (isset($_POST['btn_login'])) {
   $_POST['username'] = strip_tags(strtolower($_POST['username']));
   $s = "SELECT * from tb_user WHERE username='$_POST[username]' and password = md5('$_POST[password]')";
-  echo '<pre>';
-  print_r($s);
-  echo '</pre>';
   $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
   if (mysqli_num_rows($q)) {
     $d = mysqli_fetch_assoc($q);
