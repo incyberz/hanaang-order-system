@@ -1,5 +1,6 @@
 <?php
 include 'includes/key2kolom.php';
+include 'rstatus_bayar.php';
 
 $tb = $_GET['tb'] ?? kosong('tb');
 $fields = $_GET['fields'] ?? '*';
@@ -132,7 +133,7 @@ if ($tb == 'ZZZ') {
     # ============================================================
     $title = 'Pesanan Inprogress';
     $sub_title = 'Pesanan Inorder adalah order yang metode pembayarannya sudah jelas dan sedang proses pengiriman. Admin harus menunjuk siapa QC dan Kurir-nya!';
-    $sql_where = "a.status_bayar!=0 AND a.status_order > 0  AND a.status_order < 100";
+    $sql_where = "a.status_bayar!='BB' AND a.status_order > 0  AND a.status_order < 100";
     $fields_tambahan = "
       (
         SELECT q.nama FROM tb_petugas p 
@@ -172,32 +173,9 @@ if ($tb == 'ZZZ') {
     # METODE BAYAR PEMESANAN
     # ============================================================
     $status_bayar = substr($tb, 15);
-    $sql_where = "a.status_order >= 0 AND a.status_bayar = $status_bayar";
-    if ($status_bayar == 0) {
-      $title = 'Pesanan Belum Terbayar';
-      $sub_title = 'Belum Terbayar artinya belum jelas pembayarannya apakah Konsinyasi, DP, atau Pelunasan.';
-    } elseif ($status_bayar == 1) {
-      $title = 'Pesanan Konsinyasi';
-      $sub_title = 'Konsinyasi artinya pembayaran di-akhir-kan (penitipan barang dahulu)';
-    } elseif ($status_bayar == 2) {
-      $title = 'Pesanan Down Payment';
-      $sub_title = 'DP artinya terdapat Uang Muka sebelum pelunasan pembayaran';
-    } elseif ($status_bayar == 100) {
-      $title = 'Pesanan Lunas';
-      $sub_title = 'Pesanan Lunas artinya sudah dibayar sesuai total bayar';
-    } else {
-
-      echo '<pre>';
-      echo "<b style=color:red>UI Status Bayar [$status_bayar] belum didefinisikan.</b></pre>";
-      exit;
-
-      $sql_where = "a.status_order < 0";
-      $fields_tambahan = "(
-        SELECT CONCAT(status,' - ',nama_status) FROM tb_status_order 
-        WHERE status=a.status_order) status_pemesanan,
-        a.info_status,
-      ";
-    }
+    $title = $rstatus_bayar[$status_bayar]['nama_status'] ?? stop("null index rstatus_bayar[nama_status]");
+    $sub_title = $rstatus_bayar[$status_bayar]['keterangan'] ?? stop("null index rstatus_bayar[keterangan]");
+    $sql_where = "a.status_order >= 0 AND a.status_bayar = '$status_bayar'";
   }
 
   # ============================================================
@@ -299,7 +277,7 @@ if (mysqli_num_rows($q)) {
 $Tb = ucwords(strtolower(str_replace('_', ' ', $tb)));
 set_h2($title ? $title : 'Tampil Data ' . $Tb, $sub_title);
 
-echo !$num_rows ? alert("Tidak ada row pada data $Tb") : "
+echo !$num_rows ? alert("Tidak ada data pada Tampil Data [ $title ] | <a href=?>Back to Home</a>") : "
   <form method=post>
     <table class='table'>
       <thead class='bg-dark text-white'>

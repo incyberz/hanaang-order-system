@@ -40,7 +40,8 @@ a.tanggal_terima,
 (SELECT nama FROM tb_user WHERE username=a.qc) petugas_qc, 
 (SELECT nama FROM tb_user WHERE username=a.kurir) petugas_kurir,
 (SELECT SUM(qty) FROM tb_order_items WHERE id_order=a.id) sum_qty,
-(SELECT nama_status FROM tb_status_bayar WHERE status=a.status_bayar) metode_bayar,
+(SELECT nama_status FROM tb_status_bayar WHERE status=a.status_bayar) status_pembayaran,
+(SELECT nama_metode FROM tb_metode_bayar WHERE metode=a.metode_bayar) metode_pembayaran,
 a.*
 
 FROM tb_order a WHERE id='$id_order'
@@ -178,11 +179,14 @@ if (mysqli_num_rows($q)) {
         $th_class = 'text-end';
       } elseif ($key == 'nama_produk') {
 
-        $btn_delete = "<i class=hover onclick='alert(`Tidak bisa hapus item karena sudah ditangani Petugas.\n\nSilahkan Hapus Order untuk menghapus Order dan item-itemnya.`)'>$img_delete_disabled</i>";
-        if (!$status_order) {
-          $btn_delete = "<button class=transparan onclick='return confirm(`Delete Item ini?`)' name= btn_delete_item value='$id'>$img_delete</button>";
-        } elseif ($status_order >= 3) { // tiba di tujuan
-          $btn_delete = $img_check;
+        $btn_delete = '&nbsp;';
+        if (!$role) {
+          $btn_delete = "<i class=hover onclick='alert(`Tidak bisa hapus item karena sudah ditangani Petugas.\n\nSilahkan Hapus Order untuk menghapus Order dan item-itemnya.`)'>$img_delete_disabled</i>";
+          if (!$status_order) {
+            $btn_delete = "<button class=transparan onclick='return confirm(`Delete Item ini?`)' name= btn_delete_item value='$id'>$img_delete</button>";
+          } elseif ($status_order >= 3) { // tiba di tujuan
+            $btn_delete = $img_check;
+          }
         }
 
         $tanggal = tanggal($d['tanggal_produksi']);
@@ -229,7 +233,7 @@ if (mysqli_num_rows($q)) {
         </div>
         <div class='d-flex justify-content-between border-top py-1'>
           <div><b>Harga</b>:</div> 
-          $show[harga]
+          $show[harga_fixed]
         </div>
         <div class='d-flex justify-content-between border-top py-1'>
           <div><b>Jumlah Rp</b>:</div> 
@@ -267,6 +271,8 @@ if (mysqli_num_rows($q)) {
     $jarak = $user['jarak'];
     $alamat_kirim = $order['alamat_kirim'] ?? $user['alamat_lengkap'];
   }
+
+  $alamat_kirim = str_replace('Rt ', 'RT ', ucwords(strtolower($alamat_kirim)));
 
   echo "
     <form method=post>

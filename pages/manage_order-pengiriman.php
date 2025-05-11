@@ -1,36 +1,56 @@
 <?php
-if ($order['qc']) {
+if ($order['qc'] and $order['kurir']) {
+  $is_done_pengiriman = $img_check;
+
   # ============================================================
   # SHOW CEKLIS QC DAN KEBERANGKATAN KURIR
   # ============================================================
-  $qc_aksi = $order['tanggal_qc'] ? "
-    <div><b>QC at</b>: <i class=green>" . date('d M, Y, H:i', strtotime($order['tanggal_qc'])) . "</i> $img_check</div>
-  
-  " : "
-    <div><b>QC Status</b>: <i class=red>Belum QC</i></div>
-    <a class='btn btn-primary w-100 mt-2' href=?follow_up&tujuan=qc&qc=$order[qc]>Follow Up QC</a>
-    <button class='btn btn-success w-100 mt-2' name=btn_set_qc_ok value=$id_order>Set QC Produk OK</button>      
-  ";
 
-  $kurir_aksi = $order['tanggal_kirim'] ? "
-  <div><b>Kirim at</b>: <i class=green>" . date('d M, Y, H:i', strtotime($order['tanggal_kirim'])) . "</i> $img_check</div>
+  if ($order['tanggal_qc']) {
+    $qc_aksi = "<div><b>QC at</b>: <i class=green>" . date('d M, Y, H:i', strtotime($order['tanggal_qc'])) . "</i> $img_check</div>";
 
-" : "
-  <div><b>Kurir Status</b>: <i class=red>Belum Berangkat</i></div>
-  <a class='btn btn-primary w-100 mt-2' href=?follow_up&tujuan=kurir&kurir=$order[kurir]>Follow Up QC</a>
-  <button class='btn btn-success w-100 mt-2' name=btn_set_kurir_berangkat value=$id_order>Kurir Sudah Berangkat</button>
-";
+    # ============================================================
+    # KURIR AKSI
+    # ============================================================
+    $kurir_aksi = $order['tanggal_kirim'] ? "
+        <div><b>Kirim at</b>: <i class=green>" . date('d M, Y, H:i', strtotime($order['tanggal_kirim'])) . "</i> $img_check</div>
+    
+      " : "
+        <div><b>Kurir Status</b>: <i class=red>Belum Berangkat</i></div>
+        <a class='btn btn-primary w-100 mt-2' href=?surat_jalan&id_order=$order[id]>Cetak Surat Jalan</a>
+        <a class='btn btn-secondary w-100 mt-2' href=?follow_up&tujuan=kurir&kurir=$order[kurir]>Follow Up Kurir</a>
+        <button onclick='return confirm(`Kurir OK?`)' class='btn btn-success w-100 mt-2' name=btn_set_kurir_berangkat value=$id_order>Kurir Sudah Berangkat</button>
+      ";
+  } else {
+    # ============================================================
+    # QC AKSI
+    # ============================================================
+    $qc_aksi = "
+      <div><b>QC Status</b>: <i class=red>Belum QC</i></div>
+      <a class='btn btn-primary w-100 mt-2' href=?follow_up&tujuan=qc&qc=$order[qc]>Follow Up QC</a>
+      <button onclick='return confirm(`Stok & QC OK?`)' class='btn btn-success w-100 mt-2' name=btn_set_qc_ok value=$id_order>Stok Ready - QC-OK</button>
+      <span onclick='alert(`Pending Trx?\n\nUntuk Pending Trx belum diimplementasikan, silahkan hubungi Reseller via manual!`)' class='btn btn-secondary w-100 mt-2' name=btn_set_stok_kosong value=$id_order>Stok Kosong / Kurang</span>
+    ";
+    $kurir_aksi = '-';
+  }
 
   $blok_pengiriman = "
-  <div class='card p-3 mb-3'>
-    <div><b>QC</b>: $order[petugas_qc]</div>
-    $qc_aksi
-  </div>
-  <div class='card p-3'>
-    <div><b>Kurir</b>: $order[petugas_kurir]</div>
-    $kurir_aksi
-  </div>
-";
+    <div class='card p-3 mb-3'>
+      <div><b>QC</b>: $order[petugas_qc]</div>
+      $qc_aksi
+    </div>
+    <div class='card p-3'>
+      <div><b>Kurir</b>: $order[petugas_kurir]</div>
+      $kurir_aksi
+    </div>
+  ";
+
+  if ($order['tanggal_qc'] and $order['tanggal_kirim']) {
+    # ============================================================
+    # MANAGE KONFIRMASI
+    # ============================================================
+    include 'manage_order-konfirmasi.php';
+  }
 
 
 

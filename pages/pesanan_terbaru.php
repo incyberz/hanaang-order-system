@@ -49,8 +49,7 @@ if (mysqli_num_rows($q)) {
           . eta2($d[$key])
           . '</i>';
       } elseif ($key == 'status_pembayaran' || $key == 'status_pemesanan') {
-        $idx = $key == 'status_pembayaran' ? 'bayar' : 'order';
-        $bg = $rstatus_bayar[$d["status_$idx"]]['bg'];
+        $bg = $key == 'status_pembayaran' ? $rstatus_bayar[$d['status_bayar']]['bg'] : $rstatus_order[$d['status_order']]['bg'];
         $value = "<span class='badge bg-$bg'>$value</span>";
       }
       if ($no == 1) {

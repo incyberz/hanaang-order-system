@@ -154,6 +154,9 @@ while ($d = mysqli_fetch_assoc($q)) {
 }
 
 $order_inprogres = $rorder[1] + $rorder[2] + $rorder[3];
+echo '<pre>';
+print_r($rorder);
+echo '</pre>';
 $order_dibatalkan = $rorder[-1] + $rorder[-2] + $rorder[-3];
 
 $rstats['pesanan'] = [
@@ -169,14 +172,6 @@ $rstats['pesanan'] = [
     'count' => $order_inprogres,
     'href' => '?tampil_data&tb=pesanan_inprogress',
   ],
-  'pesanan-sukses' => [
-    'bg' => 'success',
-    'title' => 'Pengiriman Sukses',
-    'count' => $rorder[100],
-    'satuan_count' => 'Pesanan',
-    'total_count' => $rorder[0] + $order_inprogres,
-    'href' => '?tampil_data&tb=pesanan_sukses',
-  ],
   'pesanan-dibatalkan' => [
     'bg' => 'secondary',
     'title' => 'Pesanan Dibatalkan',
@@ -184,6 +179,14 @@ $rstats['pesanan'] = [
     'satuan_count' => 'Total Pesanan',
     'total_count' => $total_order,
     'href' => '?tampil_data&tb=pesanan_dibatalkan',
+  ],
+  'pesanan-sukses' => [
+    'bg' => 'success',
+    'title' => 'Pengiriman Sukses',
+    'count' => $rorder[100],
+    'satuan_count' => 'Pesanan',
+    'total_count' => $rorder[0] + $order_inprogres,
+    'href' => '?tampil_data&tb=pesanan_sukses',
   ],
 ];
 
