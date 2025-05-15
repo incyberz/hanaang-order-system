@@ -74,6 +74,7 @@ if ($_POST) {
     # ============================================================
   } elseif (isset($_POST['btn_set_lunas'])) {
     $s = "UPDATE tb_order SET 
+      tanggal_lunas = CURRENT_TIMESTAMP,
       tmp_sisa_bayar = $_POST[tmp_sisa_bayar],
       status_bayar = 'SB' -- sudah bayar, by admin
     WHERE id='$_POST[btn_set_lunas]'";

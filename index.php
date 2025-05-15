@@ -106,10 +106,11 @@ include 'pages/user.php';
     // }
     // include 'pages/ontops.php';
   }
+  include 'includes/script_btn_aksi.php';
+
   ?>
 </body>
 
-<?php include "$dotdot/includes/script_btn_aksi.php"; ?>
 
 </html>
 <script>

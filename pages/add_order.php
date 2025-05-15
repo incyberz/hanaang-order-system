@@ -27,7 +27,8 @@ $s = "SELECT a.*,
   WHERE id_order=a.id) sum_qty 
 FROM tb_order a 
 WHERE a.status_order = 0 
-AND username = '$username'
+AND username = '$username' 
+AND a.delete_at is null -- belum dihapus
 ";
 $q = mysqli_query($cn, $s) or die(mysqli_error($cn));
 $order = mysqli_fetch_assoc($q);
@@ -108,6 +109,12 @@ while ($d = mysqli_fetch_assoc($q)) {
       </div>    
     ";
   } else { // tidak ada harga fixed, gunakan harga default by system
+    if ($user['jarak']) {
+    } else {
+      stop("Alamat Kecamatan Anda belum diketahui jaraknya, sehingga belum ada harga pasti untuk Anda. Silahkan hubungi admin terlebih dahulu.
+      <a class='btn btn-success w-100 mt-2' href=?tanya_harga>Tanya Harga untuk Anda</a> 
+      ");
+    }
     $s2 = "SELECT * FROM tb_rule WHERE max_jarak >= $user[jarak]";
     $q2 = mysqli_query($cn, $s2) or die(mysqli_error($cn));
     $li_harga = '';

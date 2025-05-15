@@ -1,6 +1,5 @@
 <?php
 include "$dotdot/includes/key2kolom.php";
-include 'includes/script_btn_aksi.php';
 include 'includes/hari_tanggal.php';
 include 'order-process.php';
 include 'rstatus_order.php';
@@ -13,7 +12,10 @@ if (!$id_order || !$username)  jsurl('?');
 $get_username = $_GET['username'] ?? null;
 $user_reseller = [];
 if ($role == 'admin') {
-  if (!$get_username) kosong('get_username');
+  if (!$get_username) {
+    alert("Jika Anda Admin silahkan masuk ke <a href='?tampil_data&tb=pesanan_baru'>Pesanan Baru</a> atau  <a href='?'>Dashboard</a> ");
+    kosong('get_username');
+  }
   $s = "SELECT * FROM tb_user a 
   JOIN tb_reseller b ON a.username=b.username 
   WHERE a.username = '$get_username'";
@@ -30,12 +32,7 @@ set_title('Order Detail');
 $sql_username = $role == 'admin' ? '1' : "a.username = '$username' -- order milik sendiri ";
 $s = "SELECT 
 a.id as order_id,
-a.tanggal_order,
 (SELECT CONCAT(status,' - ',nama_status) FROM tb_status_order WHERE status=a.status_order) status_pemesanan, 
-a.tanggal_lunas,
-a.tanggal_cek,
-a.tanggal_kirim,
-a.tanggal_terima,
 (SELECT nama FROM tb_user WHERE username=a.petugas) petugas_admin, 
 (SELECT nama FROM tb_user WHERE username=a.qc) petugas_qc, 
 (SELECT nama FROM tb_user WHERE username=a.kurir) petugas_kurir,
@@ -151,11 +148,11 @@ if (mysqli_num_rows($q)) {
       ";
       $q2 = mysqli_query($cn, $s2) or die(mysqli_error($cn));
       if (mysqli_num_rows($q2) != 1) stop('Invalid num_rows for tb_rule');
-      while ($d2 = mysqli_fetch_assoc($q2)) {
-        $d['harga'] = round($d['harga_beli'] * $d2['persen_up'] / 10000) * 100;
-      }
+      $d2 = mysqli_fetch_assoc($q2);
+      $d['harga_auto'] = round($d['harga_beli'] * $d2['persen_up'] / 10000) * 100;
+      // $d['harga_fixed'] = $d['harga_auto']; // filled with
 
-      $d['jumlah_rp'] = $d['harga'] * $d['jumlah_pesan'];
+      $d['jumlah_rp'] = $d['harga_auto'] * $d['jumlah_pesan'];
     }
 
     $total_item += $d['jumlah_pesan'];
@@ -173,7 +170,7 @@ if (mysqli_num_rows($q)) {
         || $key == 'tanggal_produksi'
       ) {
         continue;
-      } elseif ($key == 'jumlah_pesan' || $key == 'harga_fixed' || $key == 'jumlah_rp' || $key == 'harga') {
+      } elseif ($key == 'jumlah_pesan' || $key == 'harga_fixed' || $key == 'jumlah_rp' || $key == 'harga_auto') {
         $value = number_format($value);
         $value = "<div class='consolas text-end'>$value</div>";
         $th_class = 'text-end';
@@ -181,11 +178,11 @@ if (mysqli_num_rows($q)) {
 
         $btn_delete = '&nbsp;';
         if (!$role) {
-          $btn_delete = "<i class=hover onclick='alert(`Tidak bisa hapus item karena sudah ditangani Petugas.\n\nSilahkan Hapus Order untuk menghapus Order dan item-itemnya.`)'>$img_delete_disabled</i>";
+          $btn_delete = "<i class=hover onclick='alert(`Tidak bisa hapus item karena sudah ditangani Petugas.`)'>$img_delete_disabled</i>";
           if (!$status_order) {
             $btn_delete = "<button class=transparan onclick='return confirm(`Delete Item ini?`)' name= btn_delete_item value='$id'>$img_delete</button>";
           } elseif ($status_order >= 3) { // tiba di tujuan
-            $btn_delete = $img_check;
+            $btn_delete = "<span onclick='alert(`Item barang ini sudah terkirim.`)'>$img_check</span>";
           }
         }
 
@@ -223,6 +220,7 @@ if (mysqli_num_rows($q)) {
     # ============================================================
     # FINAL DIV
     # ============================================================
+    $show_harga = $show['harga_fixed'] ?? $show['harga_auto'];
     $div .= "
       <div class='row-data border-top gradasi-toska py-3 px-2' id=row-data--$id>
         <div class=f12>$i</div>
@@ -233,7 +231,7 @@ if (mysqli_num_rows($q)) {
         </div>
         <div class='d-flex justify-content-between border-top py-1'>
           <div><b>Harga</b>:</div> 
-          $show[harga_fixed]
+          $show_harga
         </div>
         <div class='d-flex justify-content-between border-top py-1'>
           <div><b>Jumlah Rp</b>:</div> 
@@ -341,7 +339,20 @@ if (mysqli_num_rows($q)) {
     $order_detail
   ";
 
+  # ============================================================
+  # REALTIME UPDATE FOR ORDER 
+  # ============================================================
+  include 'realtime_update_order.php';
+
+  # ============================================================
+  # MANAGE ORDER FOR ADMIN
+  # ============================================================
   include $role ? 'manage_order.php' : 'info_pembayaran.php';
+
+
+  # ============================================================
+  # ORDER INVALID
+  # ============================================================
 } else {
   alert("Tidak ada detail items dari order id [$id_order]");
   jsurl("?add_order", 3000);

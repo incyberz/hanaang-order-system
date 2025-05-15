@@ -60,9 +60,9 @@ if (mysqli_num_rows($q)) {
     }
 
     $primary = 'primary';
-    if ($d['status_order'] == 100 and $d['status_bayar'] == 100) {
+    if ($d['status_order'] == 100 and $d['status_bayar'] == 'SB') {
       $primary = 'secondary';
-    } elseif (($d['status_order'] == 100 and $d['status_bayar'] != 100) || $d['status_order'] == 0) {
+    } elseif (($d['status_order'] == 100 and $d['status_bayar'] != 'SB') || $d['status_order'] == 0) {
       $primary = 'danger';
     }
 

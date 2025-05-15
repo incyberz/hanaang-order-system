@@ -310,4 +310,3 @@ echo !$num_rows ? alert("Tidak ada data pada Tampil Data [ $title ] | <a href=?>
     </table>
   </form>
 ";
-include 'includes/script_btn_aksi.php';

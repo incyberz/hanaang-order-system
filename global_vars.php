@@ -13,3 +13,4 @@ $arr = explode('?', $_SERVER['REQUEST_URI']);
 $nama_server = "$_SERVER[REQUEST_SCHEME]://$_SERVER[SERVER_NAME]$arr[0]";
 
 $null = '<i class="abu">null</i>';
+$img_loading = "<img src=assets/img/loading.gif height=30px width=30px>";

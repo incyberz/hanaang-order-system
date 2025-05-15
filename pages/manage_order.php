@@ -49,5 +49,3 @@ if ($role == 'admin' and $get_username and $user_reseller) {
 } else {
   stop("Invalid role or user reseller.");
 }
-
-include 'realtime_update_order.php';

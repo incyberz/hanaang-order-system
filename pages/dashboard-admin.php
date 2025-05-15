@@ -184,8 +184,8 @@ $rstats['pesanan'] = [
     'bg' => 'success',
     'title' => 'Pengiriman Sukses',
     'count' => $rorder[100],
-    'satuan_count' => 'Pesanan',
-    'total_count' => $rorder[0] + $order_inprogres,
+    'satuan_count' => 'Pesanan Aktif',
+    'total_count' => $rorder[0] + $order_inprogres + $rorder[100],
     'href' => '?tampil_data&tb=pesanan_sukses',
   ],
 ];
@@ -220,7 +220,7 @@ foreach ($rstatus_bayar as $status_bayar => $v) {
     'count' => $rbayar[$status_bayar],
     'href' => '?tampil_data&tb=pesanan_bayar--' . $status_bayar,
     'total_count' => $order_aktif,
-    'satuan_count' => 'Order Aktif',
+    'satuan_count' => 'Pesanan Aktif',
   ];
 }
 
@@ -320,8 +320,7 @@ echo "
   $stats
 ";
 
-include 'pesanan_terbaru.php';
-include 'includes/script_btn_aksi.php';
+include 'review_order.php';
 ?>
 <script>
   $(function() {

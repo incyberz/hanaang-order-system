@@ -1,5 +1,4 @@
 <?php
-$img_loading = "<img src=assets/img/loading.gif height=30px width=30px>";
 $detik = strtotime('now') - strtotime($order['tanggal_kirim']);
 
 $jam = sprintf('%02d', intval($detik / 3660));
